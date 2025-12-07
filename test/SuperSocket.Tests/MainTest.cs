@@ -728,11 +728,9 @@ namespace SuperSocket.Tests
 
                 var serviceA = host.Services.GetServices<IHostedService>().OfType<SuperSocketServiceA>().FirstOrDefault();
                 Assert.NotNull(serviceA);
-                Assert.Same(server1, serviceA);
 
                 var serviceB = host.Services.GetServices<IHostedService>().OfType<SuperSocketServiceB>().FirstOrDefault();
                 Assert.NotNull(serviceB);
-                Assert.Same(server2, serviceB);
 
                 Assert.NotNull(serviceA.ServiceProvider.GetService<ISessionContainer>());
                 Assert.NotNull(serviceB.ServiceProvider.GetService<ISessionContainer>());
@@ -748,7 +746,10 @@ namespace SuperSocket.Tests
                     var line = await streamReader.ReadLineAsync(this.CancellationToken);
                     Assert.Equal(serverName1, line);
                 }
-                
+
+                Assert.NotNull(server1);
+                Assert.Same(server1, serviceA);
+
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 await client.ConnectAsync(GetAlternativeServerEndPoint(), this.CancellationToken);
                 
@@ -759,6 +760,9 @@ namespace SuperSocket.Tests
                     var line = await streamReader.ReadLineAsync(this.CancellationToken);
                     Assert.Equal(serverName2, line);
                 }
+
+                Assert.NotNull(server2);
+                Assert.Same(server2, serviceB);
 
                 var hostEnv = server1.ServiceProvider.GetService<IHostEnvironment>();
                 Assert.NotNull(hostEnv);
