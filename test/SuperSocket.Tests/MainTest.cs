@@ -724,27 +724,39 @@ namespace SuperSocket.Tests
 
             using(var host = hostBuilder.Build())
             {
-                await host.StartAsync();
+                await host.StartAsync(this.CancellationToken);
+
+                var serviceA = host.Services.GetServices<IHostedService>().OfType<SuperSocketServiceA>().FirstOrDefault();
+                Assert.NotNull(serviceA);
+                Assert.Same(server1, serviceA);
+
+                var serviceB = host.Services.GetServices<IHostedService>().OfType<SuperSocketServiceB>().FirstOrDefault();
+                Assert.NotNull(serviceB);
+                Assert.Same(server2, serviceB);
+
+                Assert.NotNull(serviceA.ServiceProvider.GetService<ISessionContainer>());
+                Assert.NotNull(serviceB.ServiceProvider.GetService<ISessionContainer>());
+                Assert.NotSame(serviceA.ServiceProvider.GetService<ISessionContainer>(), serviceB.ServiceProvider.GetService<ISessionContainer>());
 
                 var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                await client.ConnectAsync(GetDefaultServerEndPoint());
+                await client.ConnectAsync(GetDefaultServerEndPoint(), this.CancellationToken);
                 
                 using (var stream = new NetworkStream(client))
                 using (var streamReader = new StreamReader(stream, Utf8Encoding, true))
                 using (var streamWriter = new StreamWriter(stream, Utf8Encoding, 1024 * 1024 * 4))
                 {
-                    var line = await streamReader.ReadLineAsync();
+                    var line = await streamReader.ReadLineAsync(this.CancellationToken);
                     Assert.Equal(serverName1, line);
                 }
                 
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                await client.ConnectAsync(GetAlternativeServerEndPoint());
+                await client.ConnectAsync(GetAlternativeServerEndPoint(), this.CancellationToken);
                 
                 using (var stream = new NetworkStream(client))
                 using (var streamReader = new StreamReader(stream, Utf8Encoding, true))
                 using (var streamWriter = new StreamWriter(stream, Utf8Encoding, 1024 * 1024 * 4))
                 {
-                    var line = await streamReader.ReadLineAsync();
+                    var line = await streamReader.ReadLineAsync(this.CancellationToken);
                     Assert.Equal(serverName2, line);
                 }
 
