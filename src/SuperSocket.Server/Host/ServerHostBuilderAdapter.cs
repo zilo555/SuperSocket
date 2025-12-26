@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SuperSocket.Server.Abstractions;
@@ -28,14 +29,18 @@ namespace SuperSocket.Server.Host
 
         private List<IConfigureContainerAdapter> _configureContainerActions = new List<IConfigureContainerAdapter>();
 
+        private string _serverName;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerHostBuilderAdapter{TReceivePackage}"/> class.
         /// </summary>
         /// <param name="hostBuilder">The host builder to adapt.</param>
-        public ServerHostBuilderAdapter(IHostBuilder hostBuilder)
+        /// <param name="serverName">The optional server name for keyed service registration.</param>
+        public ServerHostBuilderAdapter(IHostBuilder hostBuilder, string serverName = null)
             : base(hostBuilder)
         {
             _hostBuilder = hostBuilder;
+            _serverName = serverName;
         }
 
         /// <summary>
@@ -56,6 +61,20 @@ namespace SuperSocket.Server.Host
         protected void ConfigureServer(HostBuilderContext context, IServiceCollection hostServices)
         {
             var services = _currentServices;
+
+            // If a server name is provided, configure server options and register the server name
+            if (!string.IsNullOrEmpty(_serverName))
+            {
+                this.ConfigureServerOptions((ctx, options) =>
+                {
+                    return options.GetSection(_serverName);
+                });
+
+                services.PostConfigure<ServerOptions>(options =>
+                {
+                    options.Name = _serverName;
+                });
+            }
 
             CopyGlobalServices(hostServices, services);
 
@@ -179,7 +198,20 @@ namespace SuperSocket.Server.Host
         {
             _currentServices.AddSingleton<IHostedService, THostedService>();
             _currentServices.AddSingleton<IServerInfo>(s => s.GetService<IHostedService>() as IServerInfo);
-            servicesInHost.AddHostedService<THostedService>(s => GetHostedService<THostedService>());
+            
+            if (_serverName != null)
+            {
+                // Register as keyed service
+                servicesInHost.AddKeyedSingleton<IHostedService>(_serverName, (s, k) => GetHostedService<THostedService>());
+                servicesInHost.AddKeyedSingleton<THostedService>(_serverName, (s, k) => GetHostedService<THostedService>());
+                servicesInHost.AddKeyedSingleton<IServerInfo>(_serverName, (s, k) => GetHostedService<THostedService>() as IServerInfo);
+                servicesInHost.AddSingleton<IHostedService>(_ => GetHostedService<THostedService>());
+                servicesInHost.AddSingleton<THostedService>(_ => GetHostedService<THostedService>());
+            }
+            else
+            {
+                servicesInHost.AddHostedService<THostedService>(s => GetHostedService<THostedService>());
+            }
         }
 
         /// <summary>
