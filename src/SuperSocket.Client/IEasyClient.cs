@@ -28,7 +28,7 @@ namespace SuperSocket.Client
         /// <summary>
         /// Gets or sets the local endpoint for the client.
         /// </summary>
-        IPEndPoint LocalEndPoint { get; set; }
+        EndPoint LocalEndPoint { get; set; }
 
         /// <summary>
         /// Gets or sets the security options for the client.

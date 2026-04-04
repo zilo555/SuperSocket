@@ -43,7 +43,7 @@ namespace SuperSocket.Client
         /// <summary>
         /// Gets or sets the local endpoint for the client.
         /// </summary>
-        public IPEndPoint LocalEndPoint { get; set; }
+        public EndPoint LocalEndPoint { get; set; }
 
         /// <summary>
         /// Gets or sets the security options for the client.
@@ -195,6 +195,7 @@ namespace SuperSocket.Client
                 throw new Exception("Socket is null.");
 
             SetupConnection(state.CreateConnection(Options));
+            LocalEndPoint = socket.LocalEndPoint;
             return true;
         }
 

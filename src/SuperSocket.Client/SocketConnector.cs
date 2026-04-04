@@ -14,7 +14,7 @@ namespace SuperSocket.Client
         /// <summary>
         /// Gets the local endpoint to bind the socket to.
         /// </summary>
-        public IPEndPoint LocalEndPoint { get; private set; }
+        public EndPoint LocalEndPoint { get; private set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the Nagle algorithm is disabled for the socket.
@@ -36,7 +36,7 @@ namespace SuperSocket.Client
         /// Initializes a new instance of the <see cref="SocketConnector"/> class with the specified local endpoint.
         /// </summary>
         /// <param name="localEndPoint">The local endpoint to bind the socket to.</param>
-        public SocketConnector(IPEndPoint localEndPoint)
+        public SocketConnector(EndPoint localEndPoint)
             : base()
         {
             LocalEndPoint = localEndPoint;
