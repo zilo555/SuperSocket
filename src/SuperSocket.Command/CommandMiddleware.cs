@@ -561,7 +561,7 @@ namespace SuperSocket.Command
                 if (commandOptions.GlobalCommandFilterTypes.Any())
                     filters.AddRange(commandOptions.GlobalCommandFilterTypes.Select(t => ActivatorUtilities.CreateInstance(serviceProvider, t) as CommandFilterBaseAttribute));
 
-                filters.AddRange(commandTypeInfo.ActualCommandType.GetCustomAttributes(false).OfType<CommandFilterBaseAttribute>());
+                filters.AddRange(commandTypeInfo.ActualCommandType.GetCustomAttributes(true).OfType<CommandFilterBaseAttribute>());
                 Filters = filters;
             }
 
